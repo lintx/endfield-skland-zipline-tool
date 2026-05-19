@@ -6,6 +6,9 @@
 // @author       LinTx
 // @match        https://game.skland.com/map/endfield*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=skland.com
+// @version      1.0.2
+// @updateURL    https://raw.githubusercontent.com/lintx/endfield-skland-zipline-tool/refs/heads/main/main.user.js
+// @downloadURL  https://raw.githubusercontent.com/lintx/endfield-skland-zipline-tool/refs/heads/main/main.user.js
 // @grant        none
 // ==/UserScript==
 

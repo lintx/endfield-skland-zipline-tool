@@ -3,7 +3,6 @@
 
 # 使用方法  
 1. 安装浏览器篡改猴插件  
-2. 进入篡改猴插件，新增脚本
-3. 将main.js中的内容全部复制进去覆盖掉原有内容
-4. 保存
-5. 到森空岛地图工具中刷新
+2. 点击[这里](https://raw.githubusercontent.com/lintx/endfield-skland-zipline-tool/refs/heads/main/main.user.js)
+3. 点击安装
+4. 到森空岛地图工具中刷新
