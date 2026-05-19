@@ -605,7 +605,7 @@
                         pos.y = y;
                         pos.z = z;
                         if (posSwitchDom !== null) {
-                            posSwitchDom.innerText = `${pos.x},${pos.y},${pos.z}`;
+                            posSwitchDom.innerText = `${data.data.pos.x},${data.data.pos.y},${data.data.pos.z}`;
                         }
                         updateActiveDetailPosition();
                     }
