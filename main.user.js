@@ -16,6 +16,9 @@
 
     const IMPORT_KEYS_KEY = 'import-zipline-keys';
     const IMPORT_KEY_PREFIX = 'import-zipline-';
+    const DEFAULT_IMPORT_URL = 'https://raw.githubusercontent.com/lintx/endfield-skland-zipline-tool/refs/heads/main/json/rydi_shihara/data.json';
+    const DEFAULT_IMPORT_KEY = `${IMPORT_KEY_PREFIX}default-rydi-shihara`;
+    const DEFAULT_IMPORT_INIT_KEY = 'default-import-rydi-shihara-initialized';
     const MY_ZIPLINE_KEY = 'my-zipline';
     const DETAIL_POS_KEY = 'zipline-detail-position';
     const LINE_TEMPLATE_ID = '65863e646fa58f7a3154be46774a9144';
@@ -53,6 +56,7 @@
     const routeZiplines = [];
     const configRuntime = new Map();
     const dom = {};
+    let defaultImportPromise = null;
     const captureState = {
         active: false,
         mapId: 'map01',
@@ -604,9 +608,14 @@
     }
 
     function makeSubType(runtime) {
+        const routeName = runtime.plan.name || runtime.config.name;
+        const configName = runtime.config.name || '';
+        const configAuthor = runtime.config.author || '';
+        const configLabel = configName ? (configAuthor ? `${configName}(${configAuthor})` : configName) : '';
+        const displayName = configLabel ? `${routeName} - ${configLabel}` : routeName;
         return {
             id: runtime.subTypeId,
-            name: runtime.plan.name || runtime.config.name,
+            name: displayName,
             pic: DEFAULT_SUBTYPE_PIC,
             tagIds: [],
             templateIds: [runtime.subTypeId],
@@ -777,6 +786,7 @@
         const response = await originalFetch.apply(this, arguments);
         if (requestUrl.includes('zonai.skland.com/web/v1/game/endfield/map/catalog')) {
             try {
+                await ensureDefaultImportConfig();
                 loadAllConfigs();
                 const data = await response.clone().json();
                 return makeJsonResponse(response, injectCatalog(data));
@@ -786,6 +796,7 @@
         }
         if (requestUrl.includes('zonai.skland.com/web/v1/game/endfield/map/mark/list')) {
             try {
+                await ensureDefaultImportConfig();
                 loadAllConfigs();
                 const mapId = extractMapIdFromUrl(requestUrl);
                 const data = await response.clone().json();
@@ -887,6 +898,42 @@
             throw new Error('invalid config');
         }
         return config;
+    }
+
+    function hasImportedConfigUrl(url) {
+        for (const key of getImportKeys()) {
+            const config = readConfigFromStorage(key);
+            if (config && config.url === url) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    async function loadDefaultImportConfigOnce() {
+        if (localStorage.getItem(DEFAULT_IMPORT_INIT_KEY) === '1') {
+            return;
+        }
+        if (hasImportedConfigUrl(DEFAULT_IMPORT_URL)) {
+            localStorage.setItem(DEFAULT_IMPORT_INIT_KEY, '1');
+            return;
+        }
+        try {
+            const config = await loadConfigFromTextOrUrl(DEFAULT_IMPORT_URL);
+            saveConfigToStorage(DEFAULT_IMPORT_KEY, config);
+            setImportKeys(getImportKeys().concat(DEFAULT_IMPORT_KEY));
+            localStorage.setItem(DEFAULT_IMPORT_INIT_KEY, '1');
+            loadAllConfigs();
+        } catch (err) {
+            defaultImportPromise = null;
+        }
+    }
+
+    function ensureDefaultImportConfig() {
+        if (!defaultImportPromise) {
+            defaultImportPromise = loadDefaultImportConfigOnce();
+        }
+        return defaultImportPromise;
     }
 
     function injectStyle() {
@@ -1995,6 +2042,7 @@
     }
 
     loadAllConfigs();
+    ensureDefaultImportConfig();
     initUi();
     addMapClickListener();
     addButton();
